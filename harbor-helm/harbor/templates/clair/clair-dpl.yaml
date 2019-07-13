@@ -1,0 +1,70 @@
+##---
+# Source: harbor/templates/clair/clair-dpl.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: harbor-harbor-clair
+  labels:
+    heritage: Tiller
+    release: harbor
+    chart: harbor
+    app: "harbor"
+    component: clair
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      release: harbor
+      app: "harbor"
+      component: clair
+  template:
+    metadata:
+      labels:
+        heritage: Tiller
+        release: harbor
+        chart: harbor
+        app: "harbor"
+        component: clair
+      annotations:
+        checksum/configmap: 6276aba6568a256b0ae8faf4722952f4528fb91d5a5287ff165c07d3caf8297c
+    spec:
+      containers:
+      - name: clair
+        image: 172.16.1.99/gold/goharbor/clair-photon:v2.0.7-v1.7.0
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 6061
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 6061
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        args: ["-log-level", "debug"]
+        env:
+        - name: NO_PROXY
+          value: "harbor-harbor-registry,harbor-harbor-core"
+        resources:
+          requests:
+            cpu: 1
+            memory: 2Gi
+          
+        ports:
+        - containerPort: 6060
+        volumeMounts:
+        - name: clair-config
+          mountPath: /etc/clair/config.yaml
+          subPath: config.yaml
+      volumes:
+      - name: clair-config
+        configMap:
+          name: "harbor-harbor-clair"
+          items:
+            - key: config.yaml
+              path: config.yaml
+

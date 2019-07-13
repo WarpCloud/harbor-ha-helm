@@ -1,0 +1,81 @@
+##---
+# Source: harbor/templates/database/database-ss.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: "harbor-harbor-database"
+  labels:
+    heritage: Tiller
+    release: harbor
+    chart: harbor
+    app: "harbor"
+    component: database
+spec:
+  replicas: 1
+  serviceName: "harbor-harbor-database"
+  selector:
+    matchLabels:
+      release: harbor
+      app: "harbor"
+      component: database
+  template:
+    metadata:
+      labels:
+        heritage: Tiller
+        release: harbor
+        chart: harbor
+        app: "harbor"
+        component: database
+      annotations:
+        checksum/secret: 8accf53dfbf601db7e1b0fb79823d057c19b43014181ecc32c20f049f948b187
+    spec:
+      initContainers:
+      - name: "remove-lost-found"
+        image: 172.16.1.99/gold/goharbor/harbor-db:v1.7.0
+        imagePullPolicy: Always
+        command: ["rm", "-Rf", "/var/lib/postgresql/data/lost+found"]
+        volumeMounts:
+        - name: database-data
+          mountPath: /var/lib/postgresql/data
+      containers:
+      - name: database
+        image: 172.16.1.99/gold/goharbor/harbor-db:v1.7.0
+        imagePullPolicy: Always
+        livenessProbe:
+          exec:
+            command:
+            - /docker-healthcheck.sh
+          initialDelaySeconds: 60
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - /docker-healthcheck.sh
+          initialDelaySeconds: 1
+          periodSeconds: 10
+        resources:
+          requests:
+            cpu: 2
+            memory: 4Gi
+          
+        envFrom:
+          - secretRef:
+              name: "harbor-harbor-database"
+        volumeMounts:
+        - name: database-data
+          mountPath: /var/lib/postgresql/data
+          subPath: 
+  volumeClaimTemplates:
+  - metadata:
+      name: "database-data"
+      labels:
+        heritage: Tiller
+        release: harbor
+        chart: harbor
+        app: "harbor"
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: "rook-ceph-block"
+      resources:
+        requests:
+          storage: "50Gi"

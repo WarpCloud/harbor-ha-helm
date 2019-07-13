@@ -1,0 +1,74 @@
+##---
+# Source: harbor/templates/chartmuseum/chartmuseum-dpl.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "harbor-harbor-chartmuseum"
+  labels:
+    heritage: Tiller
+    release: harbor
+    chart: harbor
+    app: "harbor"
+    component: chartmuseum
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      release: harbor
+      app: "harbor"
+      component: chartmuseum
+  template:
+    metadata:
+      labels:
+        heritage: Tiller
+        release: harbor
+        chart: harbor
+        app: "harbor"
+        component: chartmuseum
+      annotations:
+        checksum/configmap: 12a96eb8aca2da7fecedde4676be5d43b6730e1beeae086b8c259ca969d770e1
+        checksum/secret: 5cecfc8667645836f745f1cdfe5d2bf4489e1b7667f8d9f9a22e494877ec86a0
+        checksum/secret-core: fea09ef73dbc80e3cda9d4635ee63a19ac34f4cc147bc428c4f13f78bde9b321
+    spec:
+      containers:
+      - name: chartmuseum
+        image: 172.16.1.99/gold/goharbor/chartmuseum-photon:v0.7.1-v1.7.0
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 9999
+          initialDelaySeconds: 1
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 9999
+          initialDelaySeconds: 1
+          periodSeconds: 10
+        resources:
+          requests:
+            cpu: 1
+            memory: 1Gi
+          
+        envFrom:
+        - configMapRef:
+            name: "harbor-harbor-chartmuseum"
+        - secretRef:
+            name: "harbor-harbor-chartmuseum"
+        env:
+          - name: BASIC_AUTH_PASS
+            valueFrom:
+              secretKeyRef:
+                name: harbor-harbor-core
+                key: secret
+        ports:
+        - containerPort: 9999
+        volumeMounts:
+        - name: chartmuseum-data
+          mountPath: /chart_storage
+          subPath: 
+      volumes:
+      - name: chartmuseum-data
+        emptyDir: {}

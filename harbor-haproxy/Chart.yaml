@@ -1,0 +1,11 @@
+name: harbor-haproxy
+version: 1.5.9
+appVersion: 1.5.9
+description: haproxy 1.5.9
+keywords:
+- haproxy
+- transwarp
+home: https://transwarp.io/
+sources:
+- https://transwarp.io/
+engine: gotpl

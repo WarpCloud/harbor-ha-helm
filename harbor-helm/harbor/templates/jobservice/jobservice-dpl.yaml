@@ -1,0 +1,85 @@
+##---
+# Source: harbor/templates/jobservice/jobservice-dpl.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "harbor-harbor-jobservice"
+  labels:
+    heritage: Tiller
+    release: harbor
+    chart: harbor
+    app: "harbor"
+    component: jobservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      release: harbor
+      app: "harbor"
+      component: jobservice
+  template:
+    metadata:
+      labels:
+        heritage: Tiller
+        release: harbor
+        chart: harbor
+        app: "harbor"
+        component: jobservice
+      annotations:
+        checksum/configmap: 2d15c3b2b02bd9b3db80e1c7ccac3c1f494ea0919d44ff5dd3c02758e01780aa
+        checksum/secret: 3246ad9d73e215b613ac9e65ccf24c94fc89c008d3b96b816bd3f8fc7eb12f6b
+        checksum/secret-core: acd0b995ff9b38ece8f1a40d88b29b6006e3b1f8c4810763bb81e8644276e4e6
+    spec:
+      containers:
+      - name: jobservice
+        image: 172.16.1.99/gold/goharbor/harbor-jobservice:v1.7.0
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /api/v1/stats
+            port: 8080
+          initialDelaySeconds: 20
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/v1/stats
+            port: 8080
+          initialDelaySeconds: 20
+          periodSeconds: 10
+        resources:
+          requests:
+            cpu: 2
+            memory: 3Gi
+          
+        env:
+          - name: CORE_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: harbor-harbor-core
+                key: secret
+          - name: JOBSERVICE_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: "harbor-harbor-jobservice"
+                key: secret
+          - name: CORE_URL
+            value: "http://harbor-harbor-core"
+          - name: REGISTRY_CONTROLLER_URL
+            value: "http://harbor-harbor-registry:8080"
+          - name: LOG_LEVEL
+            value: debug
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: jobservice-config
+          mountPath: /etc/jobservice/config.yml
+          subPath: config.yml
+        - name: job-logs
+          mountPath: /var/log/jobs
+          subPath: 
+      volumes:
+      - name: jobservice-config
+        configMap:
+          name: "harbor-harbor-jobservice"
+      - name: job-logs
+        emptyDir: {}

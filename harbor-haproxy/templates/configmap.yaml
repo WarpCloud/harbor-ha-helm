@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-conf
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ template "haproxy.fullname" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+data:
+{{- range $key, $val := .Values.configmap }}
+  {{ $key }}: |-
+{{ $val | indent 4}}
+{{- end }}

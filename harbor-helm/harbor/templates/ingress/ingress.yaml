@@ -1,0 +1,51 @@
+##---
+# Source: harbor/templates/ingress/ingress.yaml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: "harbor-harbor-ingress"
+  labels:
+    heritage: Tiller
+    release: harbor
+    chart: harbor
+    app: "harbor"
+  annotations:
+    certmanager.k8s.io/issuer: harbor-issuer
+    ingress.kubernetes.io/proxy-body-size: "0"
+    ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    
+spec:
+  tls:
+  - secretName: harbor-cert
+    hosts:
+    - harbor.kube-system.ingress.lan
+  rules:
+  - http:
+      paths:
+      - path: /
+        backend:
+          serviceName: harbor-harbor-portal
+          servicePort: 80
+      - path: /api/
+        backend:
+          serviceName: harbor-harbor-core
+          servicePort: 80
+      - path: /service/
+        backend:
+          serviceName: harbor-harbor-core
+          servicePort: 80
+      - path: /v2/
+        backend:
+          serviceName: harbor-harbor-core
+          servicePort: 80
+      - path: /chartrepo/
+        backend:
+          serviceName: harbor-harbor-core
+          servicePort: 80
+      - path: /c/
+        backend:
+          serviceName: harbor-harbor-core
+          servicePort: 80
+    host: harbor.kube-system.ingress.lan

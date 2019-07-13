@@ -1,0 +1,266 @@
+expose:
+  type: ingress
+  tls:
+    enabled: true
+    secretName: "harbor-cert"
+    notarySecretName: "harbor-cert-notary"
+    commonName: "harbor"
+  ingress:
+    hosts:
+      core: harbor.kube-system.ingress.lan
+      notary: notary.harbor.kube-system.ingress.lan
+    annotations:
+      ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      ingress.kubernetes.io/proxy-body-size: "0"
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+      certmanager.k8s.io/issuer: harbor-issuer
+  clusterIP:
+    name: harbor
+    ports:
+      httpPort: 80
+      httpsPort: 443
+      notaryPort: 4443
+  nodePort:
+    name: harbor
+    ports:
+      http:
+        port: 80
+        nodePort: 30002
+      https:
+        port: 443
+        nodePort: 30003
+      notary:
+        port: 4443
+        nodePort: 30004
+
+externalURL: https://harbor.kube-system.ingress.lan
+
+persistence:
+  enabled: true
+  resourcePolicy: "keep"
+  persistentVolumeClaim:
+    registry:
+      storageClass: "rook-ceph-block"
+      subPath: ""
+      accessMode: ReadWriteOnce
+      size: 500Gi
+    chartmuseum:
+      storageClass: "rook-ceph-block"
+      subPath: ""
+      accessMode: ReadWriteOnce
+      size: 10Gi
+    jobservice:
+      storageClass: "rook-ceph-block"
+      subPath: ""
+      accessMode: ReadWriteOnce
+      size: 10Gi
+    # If external database is used, the following settings for database will
+    # be ignored
+    database:
+      storageClass: "rook-ceph-block"
+      subPath: ""
+      accessMode: ReadWriteOnce
+      size: 50Gi
+    redis:
+      storageClass: "rook-ceph-block"
+      subPath: ""
+      accessMode: ReadWriteOnce
+      size: 10Gi
+  imageChartStorage:
+    type: s3
+    filesystem:
+      rootdirectory: /storage
+      #maxthreads: 100
+    s3:
+      region: harbors3
+      bucket: harbors3
+      accesskey: harbors3
+      secretkey: harbors3
+      regionendpoint: http://rook-ceph-rgw-my-store.rook-ceph.svc:7680
+
+imagePullPolicy: Always
+
+logLevel: debug
+# The initial password of Harbor admin. Change it from portal after launching Harbor
+harborAdminPassword: "Harbor12345"
+# The secret key used for encryption. Must be a string of 16 chars.
+secretKey: "not-a-secure-key"
+
+# If expose the service via "ingress", the Nginx will not be used
+nginx:
+  image:
+    repository: 172.16.1.99/gold/goharbor/nginx-photon
+    tag: v1.7.0
+  replicas: 1
+  resources:
+    requests:
+      memory: 3Gi
+      cpu: 2
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  ## Additional deployment annotations
+  podAnnotations: {}
+
+portal:
+  image:
+    repository: 172.16.1.99/gold/goharbor/harbor-portal
+    tag: v1.7.0
+  replicas: 1
+  resources:
+    requests:
+      memory: 3Gi
+      cpu: 2
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  ## Additional deployment annotations
+  podAnnotations: {}
+
+core:
+  image:
+    repository: 172.16.1.99/gold/goharbor/harbor-core
+    tag: v1.7.0
+  replicas: 1
+  resources:
+    requests:
+      memory: 3Gi
+      cpu: 2
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  ## Additional deployment annotations
+  podAnnotations: {}
+
+adminserver:
+  image:
+    repository: 172.16.1.99/gold/goharbor/harbor-adminserver
+    tag: v1.7.0
+  replicas: 1
+  resources:
+    requests:
+      memory: 3Gi
+      cpu: 2
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  ## Additional deployment annotations
+  podAnnotations: {}
+
+jobservice:
+  image:
+    repository: 172.16.1.99/gold/goharbor/harbor-jobservice
+    tag: v1.7.0
+  replicas: 1
+  maxJobWorkers: 10
+  # The logger for jobs: "file", "database" or "stdout"
+  jobLogger: stdout
+  resources:
+    requests:
+      memory: 3Gi
+      cpu: 2
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  ## Additional deployment annotations
+  podAnnotations: {}
+
+registry:
+  registry:
+    image:
+      repository: 172.16.1.99/gold/goharbor/registry-photon
+      tag: v2.6.2-v1.7.0
+  controller:
+    image:
+      repository: 172.16.1.99/gold/goharbor/harbor-registryctl
+      tag: v1.7.0
+  replicas: 1
+  resources:
+    requests:
+      memory: 2Gi
+      cpu: 2
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  ## Additional deployment annotations
+  podAnnotations: {}
+
+chartmuseum:
+  enabled: true
+  image:
+    repository: 172.16.1.99/gold/goharbor/chartmuseum-photon
+    tag: v0.7.1-v1.7.0
+  replicas: 1
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 1
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  ## Additional deployment annotations
+  podAnnotations: {}
+
+clair:
+  enabled: true
+  image:
+    repository: 172.16.1.99/gold/goharbor/clair-photon
+    tag: v2.0.7-v1.7.0
+  replicas: 1
+  # The http(s) proxy used to update vulnerabilities database from internet
+  httpProxy:
+  httpsProxy:
+  # The interval of clair updaters, the unit is hour, set to 0 to
+  # disable the updaters
+  updatersInterval: 12
+  resources:
+    requests:
+      memory: 2Gi
+      cpu: 1
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  ## Additional deployment annotations
+  podAnnotations: {}
+
+notary:
+  enabled: false
+
+database:
+  # if external database is used, set "type" to "external"
+  # and fill the connection informations in "external" section
+  type: internal
+  internal:
+    image:
+      repository: 172.16.1.99/gold/goharbor/harbor-db
+      tag: v1.7.0
+    # The initial superuser password for internal database
+    password: "changeit"
+    resources:
+      requests:
+        memory: 4Gi
+        cpu: 2
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+  ## Additional deployment annotations
+  podAnnotations: {}
+
+redis:
+  # if external Redis is used, set "type" to "external"
+  # and fill the connection informations in "external" section
+  type: internal
+  internal:
+    image:
+      repository: 172.16.1.99/gold/goharbor/redis-photon
+      tag: v1.7.0
+    resources:
+      requests:
+        memory: 4Gi
+        cpu: 1
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+  ## Additional deployment annotations
+  podAnnotations: {}
