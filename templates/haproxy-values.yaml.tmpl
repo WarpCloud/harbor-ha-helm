@@ -1,0 +1,90 @@
+image:
+  repository: haproxy
+  tag: 1.5.19
+  pullPolicy: Always
+resources:
+  limits:
+    cpu: "2"
+    memory: 4Gi
+  requests:
+    cpu: "1"
+    memory: 2Gi
+
+replicas: 3
+
+annotations:
+  cni.networks: overlay
+
+dnsPolicy: ClusterFirst
+priorityClassName: low-priority
+restartPolicy: Always
+schedulerName: default-scheduler
+
+topologyKey: kubernetes.io/hostname
+securityContext: {}
+
+# affinity:
+#   nodeAffinity:
+#     requiredDuringSchedulingIgnoredDuringExecution:
+#       nodeSelectorTerms:
+#       - matchExpressions:
+#         - key: master
+#           operator: Exists
+
+# tolerations:
+#   - key: master
+#     operator: Exists
+
+configmap:
+  haproxy.cfg: |-
+    global
+      log 127.0.0.1 local0
+      maxconn 4000
+      daemon
+      uid 99
+      gid 99
+      stats socket /tmp/haproxy.stats level admin
+
+    defaults
+      log global
+      option http-keep-alive
+      option clitcpka
+      option srvtcpka
+      option tcpka
+      option redispatch
+      timeout server 240s
+      timeout connect 5s
+      timeout client 240s
+      timeout client-fin 30s
+      timeout check 10s
+      timeout tunnel 0
+
+    frontend monitoring
+      bind *:1235
+      mode http
+      no log
+      stats uri /
+      stats enable
+
+    frontend redis_frontend
+      bind *:16379
+      option tcplog
+      mode tcp
+      default_backend redis
+
+    backend redis
+      mode tcp
+      option tcplog
+      option tcp-check
+      tcp-check send AUTH\ harbor123\r\n
+      tcp-check expect string +OK
+      tcp-check send PING\r\n
+      tcp-check expect string +PONG
+      tcp-check send info\ replication\r\n
+      tcp-check expect string role:master
+      tcp-check send QUIT\r\n
+      tcp-check expect string +OK
+      server r1 {{.REDIS_RELEASE_NAME}}-announce-0.{{.NAMESPACE}}.svc:6379 maxconn 1024 check inter 30s fall 2 rise 5
+      server r2 {{.REDIS_RELEASE_NAME}}-announce-1.{{.NAMESPACE}}.svc:6379 maxconn 1024 check inter 30s fall 2 rise 5
+      server r3 {{.REDIS_RELEASE_NAME}}-announce-2.{{.NAMESPACE}}.svc:6379 maxconn 1024 check inter 30s fall 2 rise 5
+
