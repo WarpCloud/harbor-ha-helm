@@ -12,28 +12,34 @@
 
 
 ## 部署方式
-### 1. 部署postgresqlHA
+### 1. 修改harbor.cfg
 ```
-helm --namespace=harbor upgrade -i postgresql-ha ./postgresql
-```
-
-### 2. 部署redisHA
-```
-helm --namespace=harbor upgrade -i redis-ha ./redis-ha
-```
-
-### 3. 部署harbor-haproxy
-#### **注意修改values.yaml，里面填写的第2步redis的地址**
-```
-helm --namespace=harbor upgrade -i harbor-haproxy ./harbor-haproxy
+CLUSTER_MASTER_IP=''  # 集群节点ip,只有当nodeport的情况下才会用到
+HARBOR_DEPLOY_TYPE='nodeport'　＃集群默认部署方式，只支持nodeport和ingress
+NAMESPACE='harbor'   # 部署所在的ns
+REDIS_RELEASE_NAME='redis-ha'  # redis的release名称，方便渲染haproxy和harbor的依赖配置
+POSTGRES_RELEASE_NAME='postgres-ha'　# postgres的release名称，方便渲染harbor的依赖配置
+HAPROXY_RELEASE_NAME='harbor-haproxy' #harbor haproxy的release 名称
+HARBOR_RELEASE_NAME='harbor'　#harbor的release 名称
 ```
 
-### 3. 部署harbor
+### 2. 执行prepare.sh脚本，渲染values模板
+```
+sh -x prepare.sh
+```
+
+```
+执行prepare.sh会生成values目录，里面包含了各个组件的values.yaml  
+执行prepare.sh会生成deploy.sh脚本，里面包含了helm upgrade安装各组件的命令
+```
+
+### 3. 查看修改生成出来的配置
 #### **具体参考https://github.com/goharbor/harbor-helm**
 ```
-helm --namespace=harbor upgrade -i harbor -f harbor-helm/values-ingress.yaml ./harbor-helm
+如有需要，进行修改values目录下的各组件的配置文件
 ```
-或者
+
+### 4. 进行安装集群
 ```
-helm --namespace=harbor upgrade -i harbor -f harbor-helm/values-nodeport.yaml ./harbor-helm
+sh -x deploy.sh
 ```
