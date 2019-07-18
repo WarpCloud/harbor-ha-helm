@@ -22,7 +22,7 @@ expose:
     notarySecretName: ""
     # The commmon name used to generate the certificate, it's necessary
     # when the type isn't "ingress" and "secretName" is null
-    commonName: "{{.CLUSTER_MASTER_IP}}"
+    commonName: {{.CLUSTER_MASTER_IP}}
   ingress:
     hosts:
       core: harbor.harbor.ingress.lan
@@ -266,7 +266,7 @@ portal:
   image:
     repository: goharbor/harbor-portal
     tag: v1.8.1
-  replicas: 2
+  replicas: 1
   resources:
     requests:
       memory: 3Gi
