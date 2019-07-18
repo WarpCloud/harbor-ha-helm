@@ -148,7 +148,7 @@ podDisruptionBudget: {}
 
 ## Configures redis with AUTH (requirepass & masterauth conf params)
 auth: true
-redisPassword: transwarp123
+redisPassword: harbor123
 
 ## Use existing secret containing key `authKey` (ignores redisPassword)
 # existingSecret:

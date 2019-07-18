@@ -449,7 +449,7 @@ database:
     host: "postgresql-ha-postgresql.harbor.svc"
     port: "5432"
     username: "postgres"
-    password: "transwarp123"
+    password: "harbor123"
     coreDatabase: "registry"
     clairDatabase: "clair"
     notaryServerDatabase: "notaryserver"
@@ -482,6 +482,6 @@ redis:
     jobserviceDatabaseIndex: "1"
     registryDatabaseIndex: "2"
     chartmuseumDatabaseIndex: "3"
-    password: "transwarp123"
+    password: "harbor123"
   ## Additional deployment annotations
   podAnnotations: {}

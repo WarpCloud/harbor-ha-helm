@@ -76,7 +76,7 @@ configmap:
       mode tcp
       option tcplog
       option tcp-check
-      tcp-check send AUTH\ transwarp123\r\n
+      tcp-check send AUTH\ harbor123\r\n
       tcp-check expect string +OK
       tcp-check send PING\r\n
       tcp-check expect string +PONG
