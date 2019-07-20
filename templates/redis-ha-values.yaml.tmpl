@@ -165,10 +165,10 @@ persistentVolume:
   ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
   ##   GKE, AWS & OpenStack)
   ##
-  storageClass: "silver"
+  # storageClass: "-"
   accessModes:
     - ReadWriteOnce
-  size: 20Gi
+  size: 10Gi
   annotations: {}
 init:
   resources: {}

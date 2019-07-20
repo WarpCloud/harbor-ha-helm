@@ -25,6 +25,7 @@ echo "HAPROXY_RELEASE_NAME: ${HAPROXY_RELEASE_NAME}"
 echo "HARBOR_RELEASE_NAME: ${HARBOR_RELEASE_NAME}"
 echo "HARBOR_DEPLOY_TYPE: ${HARBOR_DEPLOY_TYPE}"
 echo "CLUSTER_MASTER_IP: ${CLUSTER_MASTER_IP}"
+echo "STORAGE_CLASS_NAME: ${STORAGE_CLASS_NAME}"
 echo "============================="
 
 export NAMESPACE=${NAMESPACE}
@@ -34,6 +35,7 @@ export HAPROXY_RELEASE_NAME=${HAPROXY_RELEASE_NAME}
 export HARBOR_RELEASE_NAME=${HARBOR_RELEASE_NAME}
 export HARBOR_DEPLOY_TYPE=${HARBOR_DEPLOY_TYPE}
 export CLUSTER_MASTER_IP=${CLUSTER_MASTER_IP}
+export STORAGE_CLASS_NAME=${STORAGE_CLASS_NAME}
 
 [ ! -e ${basedir}/templates ] && echo "cannot found values templates" && exit 1
 [ -e ${basedir}/values ] && rm -rf ${basedir}/values 
@@ -42,7 +44,9 @@ mkdir -p ${basedir}/values/
 # prepare postgres-ha
 echo "begin render postgresql ha template"
 [ ! -e ${basedir}/templates/postgres-ha-values.yaml.tmpl ] && echo "cannot found postgresql values templates" && exit 1
-cp -r ${basedir}/templates/postgres-ha-values.yaml.tmpl ${basedir}/values/postgres-ha-values.yaml
+set -e
+${basedir}/envtpl -m error ${basedir}/templates/postgres-ha-values.yaml.tmpl > ${basedir}/values/postgres-ha-values.yaml
+set +e
 [ ! -e ${basedir}/values/postgres-ha-values.yaml ] && echo "render postgres ha template fail..."  && exit 1
 echo "render postgresql ha template suc.."
 

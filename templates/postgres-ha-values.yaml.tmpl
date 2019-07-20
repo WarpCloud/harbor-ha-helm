@@ -230,7 +230,7 @@ persistence:
   ##
   subPath: ""
 
-  storageClass: "silver"
+  storageClass: "{{.STORAGE_CLASS_NAME}}"
   accessModes:
     - ReadWriteOnce
   size: 8Gi

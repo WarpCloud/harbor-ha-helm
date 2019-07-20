@@ -122,19 +122,19 @@ persistence:
       # Specify the "storageClass" used to provision the volume. Or the default
       # StorageClass will be used(the default).
       # Set it to "-" to disable dynamic provisioning
-      storageClass: "silver"
+      storageClass: "{{.STORAGE_CLASS_NAME}}"
       subPath: ""
       accessMode: ReadWriteOnce
       size: 50Gi
     chartmuseum:
       existingClaim: ""
-      storageClass: "silver"
+      storageClass: "{{.STORAGE_CLASS_NAME}}"
       subPath: ""
       accessMode: ReadWriteOnce
       size: 10Gi
     jobservice:
       existingClaim: ""
-      storageClass: "silver"
+      storageClass: "{{.STORAGE_CLASS_NAME}}"
       subPath: ""
       accessMode: ReadWriteOnce
       size: 10Gi
@@ -142,7 +142,7 @@ persistence:
     # be ignored
     database:
       existingClaim: ""
-      storageClass: "silver"
+      storageClass: "{{.STORAGE_CLASS_NAME}}"
       subPath: ""
       accessMode: ReadWriteOnce
       size: 10Gi
@@ -150,7 +150,7 @@ persistence:
     # be ignored
     redis:
       existingClaim: ""
-      storageClass: "silver"
+      storageClass: "{{.STORAGE_CLASS_NAME}}"
       subPath: ""
       accessMode: ReadWriteOnce
       size: 10Gi
