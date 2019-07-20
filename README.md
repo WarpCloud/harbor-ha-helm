@@ -21,6 +21,7 @@ REDIS_RELEASE_NAME='redis-ha'  # redis的release名称，方便渲染haproxy和h
 POSTGRES_RELEASE_NAME='postgres-ha'　# postgres的release名称，方便渲染harbor的依赖配置
 HAPROXY_RELEASE_NAME='harbor-haproxy' #harbor haproxy的release 名称
 HARBOR_RELEASE_NAME='harbor'　#harbor的release 名称
+STORAGE_CLASS_NAME='silver'   #harbor各组件存储的storageClass, 
 ```
 
 ### 2. 执行prepare.sh脚本，渲染values模板
@@ -37,6 +38,7 @@ sh -x prepare.sh
 #### **具体参考https://github.com/goharbor/harbor-helm**
 ```
 如有需要，进行修改values目录下的各组件的配置文件
+redis-ha 默认是不进行持久化数据的，如有需要，自行修改values/redis-ha-values.yaml
 ```
 
 ### 4. 进行安装集群
